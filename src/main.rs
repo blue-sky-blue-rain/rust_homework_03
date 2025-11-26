@@ -46,6 +46,11 @@ impl WordList {
         }
 
         let id = line[0..4].to_string();
+
+        if !id.chars().all(|c| c.is_ascii_digit()) {
+            return Err(format!("Line {} has invalid ID: '{}'", line_number, id));
+        }
+
         let words_part = &line[5..];
         let tokens = Self::parse_tokens(words_part);
 
@@ -223,6 +228,12 @@ fn main() {
 }
 
 fn write_corrected_file(word_lists: &[WordList], output_path: &str) -> Result<(), String> {
+    if let Some(parent) = Path::new(output_path).parent() {
+        if !parent.exists() {
+            fs::create_dir_all(parent).map_err(|e| format!("Failed to create directory: {}", e))?;
+        }
+    }
+
     let content = word_lists
         .iter()
         .map(|word_list| format!("{}\n", word_list))
